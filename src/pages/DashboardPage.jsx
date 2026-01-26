@@ -44,7 +44,7 @@ const DashboardPage = () => {
 
     const filteredDnis = dnis.filter(dni =>
         dni.dniNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        dni.ocrFrontData?.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+        dni.ocrFrontData?.NOMBRE?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) return (
@@ -127,19 +127,10 @@ const DashboardPage = () => {
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent opacity-80" />
 
-                                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                                <div className="absolute bottom-4 left-4 right-4">
                                     <span className="text-2xl font-mono font-bold text-white tracking-widest">
                                         {dni.dniNumber}
                                     </span>
-                                    {dni.validation?.ok ? (
-                                        <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/20">
-                                            Validado
-                                        </span>
-                                    ) : (
-                                        <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full border border-yellow-500/20">
-                                            Pendiente
-                                        </span>
-                                    )}
                                 </div>
                             </div>
 
@@ -148,12 +139,24 @@ const DashboardPage = () => {
                                     <div className="flex items-center gap-2 text-slate-300">
                                         <User size={16} className="text-primary-500" />
                                         <span className="font-medium truncate">
-                                            {dni.ocrFrontData?.nombre || 'NONAME'} {dni.ocrFrontData?.apellidos || ''}
+                                            {dni.ocrFrontData?.NOMBRE || dni.ocrFrontData?.APELLIDOS
+                                                ? `${dni.ocrFrontData?.NOMBRE || ''} ${(dni.ocrFrontData?.APELLIDOS || '').replace('\n', ' ')}`.trim()
+                                                : 'Sin datos OCR'}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 text-slate-400 text-sm">
                                         <Calendar size={16} />
-                                        <span>{new Date().toLocaleDateString()}</span> {/* Ideally created_at from backend */}
+                                        <span>
+                                            {dni.createdAt
+                                                ? new Date(dni.createdAt).toLocaleString('es-ES', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })
+                                                : 'Sin fecha'}
+                                        </span>
                                     </div>
                                 </div>
 
