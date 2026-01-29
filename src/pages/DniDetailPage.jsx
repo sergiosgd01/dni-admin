@@ -199,7 +199,9 @@ const DniDetailPage = () => {
                                         <Droplets size={12} />
                                         Homogeneidad
                                     </div>
-                                    {renderBooleanIndicator(dni.homogenityPassed, 'Pasó', 'No Pasó')}
+                                    <span className="text-white font-medium text-lg">
+                                        {dni.homogenityPassed !== null && dni.homogenityPassed !== undefined ? `${Number(dni.homogenityPassed).toFixed(2)}%` : 'N/A'}
+                                    </span>
                                 </div>
                                 <div className="bg-white/5 p-3 rounded-lg">
                                     <div className="flex items-center gap-2 text-slate-400 text-xs uppercase mb-2">
