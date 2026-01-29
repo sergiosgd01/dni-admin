@@ -210,6 +210,13 @@ const DniDetailPage = () => {
                                 </div>
                                 <div className="bg-white/5 p-3 rounded-lg">
                                     <div className="flex items-center gap-2 text-slate-400 text-xs uppercase mb-2">
+                                        <Eye size={12} />
+                                        Detección Manual
+                                    </div>
+                                    {renderBooleanIndicator(dni.manualDetection)}
+                                </div>
+                                <div className="bg-white/5 p-3 rounded-lg">
+                                    <div className="flex items-center gap-2 text-slate-400 text-xs uppercase mb-2">
                                         <FileText size={12} />
                                         Marca de Agua
                                     </div>

@@ -8,6 +8,7 @@ const DashboardPage = () => {
     const [dnis, setDnis] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -47,6 +48,34 @@ const DashboardPage = () => {
         dni.ocrFrontData?.NOMBRE?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const sortedDnis = [...filteredDnis].sort((a, b) => {
+        if (!sortConfig.key) return 0;
+
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Manejo especial para datos anidados u otros casos
+        if (sortConfig.key === 'name') {
+            aValue = a.ocrFrontData?.NOMBRE || '';
+            bValue = b.ocrFrontData?.NOMBRE || '';
+        }
+
+        if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+
+    const handleSort = (key) => {
+        setSortConfig(current => ({
+            key,
+            direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
+
     if (loading) return (
         <div className="flex h-[50vh] items-center justify-center">
             <Loader2 className="animate-spin text-primary-500" size={48} />
@@ -60,6 +89,35 @@ const DashboardPage = () => {
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
                     <p className="text-slate-400">Resumen y gestión de documentos escaneados</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <div className="flex bg-dark-800 p-1 rounded-xl border border-white/5">
+                        <button
+                            onClick={() => handleSort('createdAt')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${sortConfig.key === 'createdAt'
+                                    ? 'bg-primary-500/20 text-primary-400'
+                                    : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <Calendar size={14} /> Fecha
+                            {sortConfig.key === 'createdAt' && (
+                                <span className="text-xs">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => handleSort('name')}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${sortConfig.key === 'name'
+                                    ? 'bg-primary-500/20 text-primary-400'
+                                    : 'text-slate-400 hover:text-white'
+                                }`}
+                        >
+                            <User size={14} /> Nombre
+                            {sortConfig.key === 'name' && (
+                                <span className="text-xs">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-dark-800 p-4 rounded-xl border border-white/5 flex items-center gap-4">
@@ -104,7 +162,7 @@ const DashboardPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
-                    {filteredDnis.map((dni, index) => (
+                    {sortedDnis.map((dni, index) => (
                         <motion.div
                             key={dni._id}
                             initial={{ opacity: 0, y: 20 }}
