@@ -96,8 +96,8 @@ const DashboardPage = () => {
                         <button
                             onClick={() => handleSort('createdAt')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${sortConfig.key === 'createdAt'
-                                    ? 'bg-primary-500/20 text-primary-400'
-                                    : 'text-slate-400 hover:text-white'
+                                ? 'bg-primary-500/20 text-primary-400'
+                                : 'text-slate-400 hover:text-white'
                                 }`}
                         >
                             <Calendar size={14} /> Fecha
@@ -108,8 +108,8 @@ const DashboardPage = () => {
                         <button
                             onClick={() => handleSort('name')}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${sortConfig.key === 'name'
-                                    ? 'bg-primary-500/20 text-primary-400'
-                                    : 'text-slate-400 hover:text-white'
+                                ? 'bg-primary-500/20 text-primary-400'
+                                : 'text-slate-400 hover:text-white'
                                 }`}
                         >
                             <User size={14} /> Nombre
@@ -171,24 +171,16 @@ const DashboardPage = () => {
                             transition={{ delay: index * 0.05 }}
                             className="glass-card group hover:border-primary-500/30 transition-all rounded-2xl overflow-hidden flex flex-col"
                         >
-                            <div className="h-48 bg-dark-900 relative overflow-hidden">
-                                {dni.frontImageUrl ? (
-                                    <img
-                                        src={dni.frontImageUrl}
-                                        alt="DNI Front"
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-dark-800 text-slate-600">
-                                        <span className="text-xs">Sin imagen</span>
+                            <div className="bg-dark-900 border-b border-white/5 p-4 flex items-center justify-between relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-transparent" />
+                                <span className="text-xl font-mono font-bold text-white tracking-widest relative z-10">
+                                    {dni.dniNumber}
+                                </span>
+                                <div className="relative z-10">
+                                    <div className={`px-2 py-1 rounded text-xs font-bold uppercase ${dni.validation?.ok ? 'bg-green-500/20 text-green-400' : 'bg-slate-700 text-slate-400'
+                                        }`}>
+                                        {dni.validation?.ok ? 'Valido' : 'Info'}
                                     </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent opacity-80" />
-
-                                <div className="absolute bottom-4 left-4 right-4">
-                                    <span className="text-2xl font-mono font-bold text-white tracking-widest">
-                                        {dni.dniNumber}
-                                    </span>
                                 </div>
                             </div>
 
@@ -215,6 +207,22 @@ const DashboardPage = () => {
                                                 })
                                                 : 'Sin fecha'}
                                         </span>
+                                    </div>
+
+                                    {/* Nuevos indicadores solicitados */}
+                                    <div className="flex flex-col gap-1 mt-2">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-500">Censura Manual:</span>
+                                            <span className={`px-1.5 py-0.5 rounded ${dni.manualCensor ? 'bg-green-500/10 text-green-400' : 'bg-slate-700/30 text-slate-500'}`}>
+                                                {dni.manualCensor ? 'Sí' : 'No'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-slate-500">Detección Manual:</span>
+                                            <span className={`px-1.5 py-0.5 rounded ${dni.manualDetection ? 'bg-green-500/10 text-green-400' : 'bg-slate-700/30 text-slate-500'}`}>
+                                                {dni.manualDetection ? 'Sí' : 'No'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 

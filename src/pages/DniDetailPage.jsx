@@ -130,39 +130,8 @@ const DniDetailPage = () => {
             </button>
 
             <div className="flex flex-col xl:flex-row gap-6 items-start">
-                {/* Left Column: Images */}
-                <div className="w-full xl:w-1/2 space-y-6">
-                    <div className="glass-card p-6 rounded-2xl">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <CreditCard size={20} className="text-primary-500" />
-                            Imagen Frontal
-                        </h3>
-                        <div className="rounded-xl overflow-hidden bg-dark-900 border border-white/5 relative group">
-                            {dni.frontImageUrl ? (
-                                <img src={dni.frontImageUrl} alt="Front" className="w-full h-auto object-contain" />
-                            ) : (
-                                <div className="h-64 flex items-center justify-center text-slate-600">No Image</div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="glass-card p-6 rounded-2xl">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <CreditCard size={20} className="text-primary-500" />
-                            Imagen Trasera
-                        </h3>
-                        <div className="rounded-xl overflow-hidden bg-dark-900 border border-white/5 relative">
-                            {dni.backImageUrl ? (
-                                <img src={dni.backImageUrl} alt="Back" className="w-full h-auto object-contain" />
-                            ) : (
-                                <div className="h-64 flex items-center justify-center text-slate-600">No Image</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right Column: Data */}
-                <div className="w-full xl:w-1/2 space-y-6">
+                {/* Right Column: Data - Made full width since images were removed */}
+                <div className="w-full space-y-6">
                     {/* Header: DNI Number + Profile + Validation */}
                     <div className="glass-card p-8 rounded-2xl">
                         <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
