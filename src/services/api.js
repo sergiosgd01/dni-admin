@@ -3,30 +3,33 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 export const dniService = {
-    // Save DNI (Manual entry if needed)
-    save: (data) => api.post('/dni/save', data),
+  // Save DNI (Manual entry if needed)
+  save: (data) => api.post('/dni/save', data),
 
-    // Get All DNIs
-    getAll: () => api.get('/dni'),
+  // Get All DNIs
+  getAll: () => api.get('/dni'),
 
-    // Get DNI by ID
-    getById: (id) => api.get(`/dni/${id}`),
+  // Get DNI by ID
+  getById: (id) => api.get(`/dni/${id}`),
 
-    // Get History by DNI Number
-    getHistory: (dniNumber) => api.get(`/dni/history/${dniNumber}`),
+  // Get History by DNI Number (Legacy, might be replaced or kept depending on backend, leaving untouched)
+  getHistory: (dniNumber) => api.get(`/dni/history/${dniNumber}`),
 
-    // Delete DNI
-    delete: (id) => api.delete(`/dni/${id}`),
+  // Get Usage Count for a specific DNI Number
+  getUsageCount: (dniNumber) => api.post('/dni/usage-count', { dniNumber }),
 
-    // Health Check
-    health: () => api.get('/health'),
+  // Delete DNI
+  delete: (id) => api.delete(`/dni/${id}`),
+
+  // Health Check
+  health: () => api.get('/health'),
 };
 
 export default api;
