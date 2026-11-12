@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { dniService } from '../services/api';
-import { ArrowLeft, Trash2, CheckCircle, XCircle, CreditCard, FileText, AlertCircle, Shield, Eye, EyeOff, Clock, Tag, Droplets, Fingerprint, PenTool, History } from 'lucide-react';
+import { ArrowLeft, Trash2, CheckCircle, XCircle, CreditCard, FileText, AlertCircle, Shield, Eye, EyeOff, Clock, Tag, Droplets, Fingerprint, PenTool } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // Mapeo de nombres de perfiles para mostrar
@@ -41,7 +41,6 @@ const DniDetailPage = () => {
   const navigate = useNavigate();
   const [dni, setDni] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [usageCount, setUsageCount] = useState(null);
 
   useEffect(() => {
     fetchDni();
@@ -50,19 +49,7 @@ const DniDetailPage = () => {
   const fetchDni = async () => {
     try {
       const response = await dniService.getById(id);
-      const dniData = response.data.data;
-      setDni(dniData);
-
-      if (dniData.dniHash) {
-        try {
-          const allResponse = await dniService.getAll();
-          const allDnis = Array.isArray(allResponse.data.data) ? allResponse.data.data : [];
-          const count = allDnis.filter(d => d.dniHash === dniData.dniHash).length;
-          setUsageCount(count);
-        } catch (e) {
-          console.error("No se pudo obtener el historial total", e);
-        }
-      }
+      setDni(response.data.data);
     } catch (err) {
       console.error(err);
       alert('Error fetching DNI or not found');
@@ -149,8 +136,8 @@ const DniDetailPage = () => {
           <div className="glass-card p-8 rounded-2xl">
             <div className="flex flex-col md:flex-row md:items-start justify-between mb-6 gap-4">
               <div className="overflow-hidden">
-                <p className="text-sm text-slate-400">ID de Documento (Hash seguro)</p>
-                <h1 className="text-xl md:text-2xl font-mono font-bold text-white mt-1 break-all">{dni.dniHash || 'DNI Protegido'}</h1>
+                <p className="text-sm text-slate-400">Registro de uso anónimo</p>
+                <h1 className="text-xl md:text-2xl font-mono font-bold text-white mt-1 break-all">{dni._id}</h1>
               </div>
               <div className="flex flex-wrap gap-2">
                 {dni.profileUsed && (
@@ -169,15 +156,6 @@ const DniDetailPage = () => {
                 Metadatos de Procesamiento
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-white/5 p-3 rounded-lg md:col-span-2">
-                  <div className="flex items-center gap-2 text-slate-400 text-xs uppercase mb-2">
-                    <History size={12} />
-                    Historial en el Sistema
-                  </div>
-                  <span className="text-white font-medium text-lg flex items-center gap-2">
-                    {usageCount !== null ? `${usageCount} ${usageCount === 1 ? 'vez procesado' : 'veces procesado'}` : 'Calculando...'}
-                  </span>
-                </div>
                 <div className="bg-white/5 p-3 rounded-lg">
                   <div className="flex items-center gap-2 text-slate-400 text-xs uppercase mb-2">
                     <Fingerprint size={12} />

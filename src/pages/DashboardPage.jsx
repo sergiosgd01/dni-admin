@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dniService } from '../services/api';
-import { Search, Loader2, AlertCircle, Eye, Trash2, Calendar, FileText, CheckCircle, Shield, History } from 'lucide-react';
+import { Search, Loader2, AlertCircle, Eye, Trash2, Calendar, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DashboardPage = () => {
@@ -10,12 +10,6 @@ const DashboardPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [error, setError] = useState(null);
-
-  // Usage check state
-  const [checkDniNumber, setCheckDniNumber] = useState('');
-  const [checkResult, setCheckResult] = useState(null);
-  const [checking, setChecking] = useState(false);
-  const [checkError, setCheckError] = useState(null);
 
   useEffect(() => {
     fetchDnis();
@@ -49,33 +43,9 @@ const DashboardPage = () => {
     }
   };
 
-  const handleCheckUsage = async (e) => {
-    e.preventDefault();
-    if (!checkDniNumber.trim()) return;
-
-    try {
-      setChecking(true);
-      setCheckError(null);
-      setCheckResult(null);
-      const response = await dniService.getUsageCount(checkDniNumber);
-      setCheckResult(response.data.data);
-    } catch (err) {
-      console.error(err);
-      setCheckError(err.response?.data?.message || 'Error al comprobar el DNI');
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  // Calcular cuántas veces aparece cada hash para mostrar el contador
-  const hashCounts = {};
-  dnis.forEach(d => {
-    if (d.dniHash) {
-      hashCounts[d.dniHash] = (hashCounts[d.dniHash] || 0) + 1;
-    }
-  });
+  // Solo métricas anónimas. Ya no se busca ni se agrupa por DNI.
   const filteredDnis = dnis.filter(dni =>
-    dni.dniHash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    !searchTerm.trim() ||
     dni.profileUsed?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -167,73 +137,11 @@ const DashboardPage = () => {
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
         <input
           type="text"
-          placeholder="Buscar por Hash o Perfil..."
+          placeholder="Buscar por perfil..."
           className="w-full bg-dark-800 border-none rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-600 focus:ring-2 focus:ring-primary-500/50 transition-all shadow-lg"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-      </div>
-
-      {/* Usage Check Section */}
-      <div className="bg-dark-800 p-6 rounded-2xl border border-white/5 space-y-4">
-        <div className="flex items-center gap-2">
-          <Shield className="text-primary-500" size={24} />
-          <h2 className="text-xl font-bold text-white">Comprobar Usos de DNI</h2>
-        </div>
-        <p className="text-slate-400 text-sm">Introduce el número de DNI manual para verificar cuántas veces ha sido procesado por el sistema.</p>
-        <form onSubmit={handleCheckUsage} className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Ej: 12345678A"
-            className="flex-1 bg-dark-900 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-primary-500"
-            value={checkDniNumber}
-            onChange={(e) => setCheckDniNumber(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={checking || !checkDniNumber.trim()}
-            className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:hover:bg-primary-500 text-white px-6 py-2 rounded-xl font-medium transition-colors flex items-center gap-2"
-          >
-            {checking ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-            Comprobar
-          </button>
-        </form>
-
-        {checkError && (
-          <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm">
-            {checkError}
-          </div>
-        )}
-
-        {checkResult && (
-          <div className="mt-4 p-4 bg-dark-900 rounded-xl border border-white/5">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-slate-300">Total de veces procesado:</span>
-              <span className="text-2xl font-bold text-white">{checkResult.usageCount}</span>
-            </div>
-            {checkResult.recentUsage?.length > 0 && (
-              <div className="space-y-2">
-                <span className="text-sm font-medium text-slate-400">Usos Recientes:</span>
-                {checkResult.recentUsage.map((usage, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-primary-400" />
-                      <span className="text-slate-300">{new Date(usage.date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {usage.profile && <span className="px-2 py-0.5 bg-dark-800 rounded text-slate-400 text-xs">{usage.profile}</span>}
-                      {usage.validation?.ok ? (
-                        <span className="flex items-center gap-1 text-green-400 text-xs"><CheckCircle size={12} /> Válido</span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-slate-500 text-xs">Info</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Content */}
@@ -266,15 +174,9 @@ const DashboardPage = () => {
             >
               <div className="bg-dark-900 border-b border-white/5 p-4 flex items-center justify-between relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-transparent" />
-                <span className="text-xl font-mono font-bold text-white tracking-widest relative z-10 truncate" title={dni.dniHash}>
-                  {dni.dniHash ? `${dni.dniHash.substring(0, 12)}...` : 'DNI Cifrado'}
+                <span className="text-xl font-mono font-bold text-white tracking-widest relative z-10 truncate" title={dni._id}>
+                  {`Registro #${String(dni._id).slice(-6)}`}
                 </span>
-                <div className="relative z-10 shrink-0 ml-2">
-                  <div className="px-2 py-1 rounded-md text-xs font-medium bg-dark-800 text-slate-400 border border-white/5 flex items-center gap-1.5" title="Veces que este DNI ha sido procesado en el sistema">
-                    <History size={12} className="text-primary-500" />
-                    <span>{hashCounts[dni.dniHash] || 1} {hashCounts[dni.dniHash] === 1 ? 'vez' : 'veces'}</span>
-                  </div>
-                </div>
               </div>
 
               <div className="p-5 flex-1 flex flex-col">

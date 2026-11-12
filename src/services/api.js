@@ -62,12 +62,6 @@ export const dniService = {
   // Get DNI by ID
   getById: (id) => api.get(`/dni/${id}`),
 
-  // Get History by DNI Number (Legacy, might be replaced or kept depending on backend, leaving untouched)
-  getHistory: (dniNumber) => api.get(`/dni/history/${dniNumber}`),
-
-  // Get Usage Count for a specific DNI Number
-  getUsageCount: (dniNumber) => api.post('/dni/usage-count', { dniNumber }),
-
   // Delete DNI
   delete: (id) => api.delete(`/dni/${id}`),
 
