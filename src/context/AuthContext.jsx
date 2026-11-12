@@ -1,45 +1,78 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext } from 'react';
+import { authService, tokenStorage } from '../services/api';
 
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+// Reads the user from the stored JWT only to show the session in the UI.
+// The real check is always done by the backend on every request.
+const getUserFromToken = (token) => {
+    if (!token) return null;
 
-    useEffect(() => {
-        // Check local storage for session persistence
-        const storedUser = localStorage.getItem('dni_admin_user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+    try {
+        const payloadPart = token.split('.')[1];
+        const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+        const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+        const payload = JSON.parse(new TextDecoder().decode(bytes));
+
+        if (!payload.exp || payload.exp * 1000 <= Date.now()) {
+            return null;
         }
-        setLoading(false);
-    }, []);
 
-    const login = (username, password) => {
-        // Credentials from environment variables
-        const ADMIN_USER = import.meta.env.VITE_ADMIN_USER;
-        const ADMIN_PASS = import.meta.env.VITE_ADMIN_PASS;
+        return { username: payload.sub, role: payload.role };
+    } catch {
+        return null;
+    }
+};
 
-        if (username === ADMIN_USER && password === ADMIN_PASS) {
-            const userData = { username, role: 'admin' };
+const loadInitialUser = () => {
+    const user = getUserFromToken(tokenStorage.get());
+    if (!user) {
+        // Also removes the old "dni_admin_user" key from the client-side login
+        tokenStorage.clear();
+    }
+    return user;
+};
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(loadInitialUser);
+
+    const login = async (username, password) => {
+        try {
+            const response = await authService.login(username, password);
+            const token = response.data?.token;
+            const userData = getUserFromToken(token);
+
+            if (!userData) {
+                return { success: false, message: 'Respuesta de acceso no válida' };
+            }
+
+            tokenStorage.set(token);
             setUser(userData);
-            localStorage.setItem('dni_admin_user', JSON.stringify(userData));
             return { success: true };
-        } else {
-            return { success: false, message: 'Credenciales incorrectas' };
+        } catch (error) {
+            const status = error.response?.status;
+
+            if (status === 400 || status === 401) {
+                return { success: false, message: 'Credenciales incorrectas' };
+            }
+
+            return {
+                success: false,
+                message: error.response?.data?.message || 'No se pudo conectar con el servidor'
+            };
         }
     };
 
     const logout = () => {
+        tokenStorage.clear();
         setUser(null);
-        localStorage.removeItem('dni_admin_user');
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
-            {!loading && children}
+        <AuthContext.Provider value={{ user, login, logout, loading: false }}>
+            {children}
         </AuthContext.Provider>
     );
 };

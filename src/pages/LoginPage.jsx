@@ -8,12 +8,19 @@ const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const result = login(username, password);
+        if (submitting) return;
+
+        setSubmitting(true);
+        setError('');
+        const result = await login(username, password);
+        setSubmitting(false);
+
         if (result.success) {
             navigate('/');
         } else {
@@ -82,9 +89,10 @@ const LoginPage = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-primary-600 hover:bg-primary-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-primary-600/20 hover:shadow-primary-600/40 flex items-center justify-center gap-2 mt-6 active:scale-[0.98]"
+                            disabled={submitting}
+                            className="w-full bg-primary-600 hover:bg-primary-500 text-white font-medium py-3 rounded-xl transition-all shadow-lg shadow-primary-600/20 hover:shadow-primary-600/40 flex items-center justify-center gap-2 mt-6 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            <span>Entrar al Sistema</span>
+                            <span>{submitting ? 'Comprobando...' : 'Entrar al Sistema'}</span>
                             <ArrowRight size={18} />
                         </button>
                     </form>
