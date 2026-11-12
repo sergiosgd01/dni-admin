@@ -1,0 +1,9 @@
+# Cabeceras de seguridad que Netlify añade a todas las páginas del panel de administración.
+# connect-src solo permite hablar con el backend (su dirección de Vercel y la de Cloudflare).
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://dni-backend-six.vercel.app https://api.defiendetuidentidad.es; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  X-Robots-Tag: noindex, nofollow
