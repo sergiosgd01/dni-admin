@@ -52,21 +52,64 @@ export const authService = {
   login: (username, password) => api.post('/auth/login', { username, password }),
 };
 
+// Campos de un registro que puede enseñar el panel. Todo lo demás se descarta al llegar,
+// para que nada de lo que guardaban los registros antiguos (el DNI en claro o cifrado, su huella,
+// el texto leído por OCR o las imágenes) llegue a ninguna pantalla aunque el backend lo devuelva
+const CAMPOS_DEL_REGISTRO = [
+  '_id', 'createdAt', 'updatedAt', 'profileUsed', 'hiddenFields', 'manualCensor', 'manualDetection',
+  'hologramReadable', 'homogenityPassed', 'watermarkText', 'deteccion',
+];
+
+const limpiarRegistro = (registro) => {
+  if (!registro || typeof registro !== 'object') return null;
+  return Object.fromEntries(
+    CAMPOS_DEL_REGISTRO.filter((campo) => campo in registro).map((campo) => [campo, registro[campo]])
+  );
+};
+
+// Solo se mandan los filtros que tienen valor
+const soloConValor = (filtros) =>
+  Object.fromEntries(Object.entries(filtros).filter(([, valor]) => valor !== undefined && valor !== null && valor !== ''));
+
 export const dniService = {
-  // Save DNI (Manual entry if needed)
-  save: (data) => api.post('/dni/save', data),
+  // Una página del listado, del registro más reciente al más antiguo
+  list: async ({ page, limit }, signal) => {
+    const { data } = await api.get('/dni', { params: { page, limit }, signal });
+    const registros = Array.isArray(data?.data) ? data.data.map(limpiarRegistro).filter(Boolean) : [];
+    return { ...data, data: registros };
+  },
 
-  // Get All DNIs
-  getAll: () => api.get('/dni'),
+  getById: async (id, signal) => {
+    const { data } = await api.get(`/dni/${encodeURIComponent(id)}`, { signal });
+    return limpiarRegistro(data?.data);
+  },
 
-  // Get DNI by ID
-  getById: (id) => api.get(`/dni/${id}`),
+  delete: (id) => api.delete(`/dni/${encodeURIComponent(id)}`),
 
-  // Delete DNI
-  delete: (id) => api.delete(`/dni/${id}`),
+  // Fallos de detección por campo y cara, con filtros opcionales de modelo y fechas (AAAA-MM-DD)
+  fieldStats: async ({ modelo, desde, hasta }, signal) => {
+    const { data } = await api.get('/dni/stats/campos', { params: soloConValor({ modelo, desde, hasta }), signal });
+    return data?.data ?? null;
+  },
 
   // Health Check
   health: () => api.get('/health'),
 };
+
+/**
+ * Mensaje en español para un error de una petición al backend.
+ * @param {unknown} error - Error de axios
+ * @param {object} [mensajes] - Textos para casos concretos, por código de estado
+ */
+export const describirError = (error, mensajes = {}) => {
+  const status = error?.response?.status;
+  if (status && mensajes[status]) return mensajes[status];
+  if (!error?.response) return 'No se pudo conectar con el backend. Comprueba la conexión y vuelve a probar.';
+  if (status === 429) return 'Demasiadas peticiones seguidas. Espera unos minutos y vuelve a probar.';
+  if (status >= 500) return 'El backend ha fallado al responder. Vuelve a probar en un rato.';
+  return error.response.data?.message || `El backend respondió con un error (${status}).`;
+};
+
+export const esCancelacion = (error) => axios.isCancel(error);
 
 export default api;

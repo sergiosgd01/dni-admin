@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShieldCheck, LayoutDashboard, Menu, X } from 'lucide-react';
+import { LogOut, ShieldCheck, LayoutDashboard, BarChart3, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const SECCIONES = [
+    { ruta: '/', nombre: 'Registros', icono: <LayoutDashboard size={20} />, exacta: true },
+    { ruta: '/fallos', nombre: 'Fallos por campo', icono: <BarChart3 size={20} /> },
+];
 
 const MainLayout = () => {
     const { logout } = useAuth();
@@ -62,11 +67,22 @@ const MainLayout = () => {
                                 </h1>
                             </div>
 
-                            <nav className="flex-1 px-4 py-4 space-y-2 mt-4 md:mt-0">
-                                <button className="w-full flex items-center gap-3 px-4 py-3 bg-primary-500/10 text-primary-500 rounded-xl transition-all">
-                                    <LayoutDashboard size={20} />
-                                    <span className="font-medium">Dashboard</span>
-                                </button>
+                            <nav className="flex-1 px-4 py-4 space-y-2 mt-4 md:mt-0" aria-label="Secciones del panel">
+                                {SECCIONES.map(({ ruta, nombre, icono, exacta }) => (
+                                    <NavLink
+                                        key={ruta}
+                                        to={ruta}
+                                        end={exacta}
+                                        onClick={() => setIsSidebarOpen(false)}
+                                        className={({ isActive }) => `w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                                            ? 'bg-primary-500/10 text-primary-500'
+                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                            }`}
+                                    >
+                                        {icono}
+                                        <span className="font-medium">{nombre}</span>
+                                    </NavLink>
+                                ))}
                             </nav>
 
                             <div className="p-4 border-t border-white/5">

@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import DniDetailPage from './pages/DniDetailPage';
+import FallosPorCampoPage from './pages/FallosPorCampoPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -18,8 +19,10 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  // La paginación y los filtros guardan su estado en la dirección. Sin transiciones la dirección cambia al momento.
+  // Con ellas, las casillas y los desplegables volvían un instante a su valor anterior al tocarlos
   return (
-    <BrowserRouter>
+    <BrowserRouter useTransitions={false}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -31,6 +34,7 @@ function App() {
           }>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/dni/:id" element={<DniDetailPage />} />
+            <Route path="/fallos" element={<FallosPorCampoPage />} />
           </Route>
         </Routes>
       </AuthProvider>
