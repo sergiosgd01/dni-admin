@@ -9,7 +9,8 @@ export const PERFILES = {
 
 export const perfilDe = (id) => (id ? PERFILES[id] || PERFILES.personalizado : null);
 
-// Las 20 casillas del editor de la web, en el mismo orden, con la clave que llega en hiddenFields
+// Las 21 casillas del editor de la web, en el mismo orden, con la clave que llega en hiddenFields.
+// Fotografía llegó con FUN-3, así que los registros de antes no la traen y salen como «Sin dato»
 export const CAMPOS_TAPABLES = [
   {
     grupo: 'frontFields',
@@ -26,6 +27,7 @@ export const CAMPOS_TAPABLES = [
       ['numeroSoporte', 'Número de soporte'],
       ['can', 'CAN'],
       ['firma', 'Firma'],
+      ['fotografia', 'Fotografía'],
       ['cli', 'CLI (imagen láser cambiante)'],
     ],
   },

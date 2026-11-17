@@ -64,7 +64,7 @@ const EstadoCampo = ({ valor }) => {
   );
 };
 
-// Los 20 campos del editor. Cómo se leen depende de la fecha del registro, ver fiabilidadMetrica
+// Los 21 campos del editor. Cómo se leen depende de la fecha del registro, ver fiabilidadMetrica
 const CamposTapados = ({ registro }) => {
   const fiabilidad = fiabilidadMetrica(registro, 'hiddenFields');
   const sinDatos = fiabilidad === 'sin-datos';
