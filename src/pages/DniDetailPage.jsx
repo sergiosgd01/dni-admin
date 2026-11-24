@@ -55,34 +55,40 @@ const EstadoCampo = ({ valor }) => {
   if (typeof valor !== 'boolean') return <span className="text-xs text-slate-500">Sin dato</span>;
   return valor ? (
     <span className="flex items-center gap-1.5 text-primary-300 text-xs">
-      <EyeOff size={14} /> Tapado
+      <EyeOff size={14} /> Marcado
     </span>
   ) : (
     <span className="flex items-center gap-1.5 text-amber-300 text-xs">
-      <Eye size={14} /> Visible
+      <Eye size={14} /> Sin marcar
     </span>
   );
 };
 
-// Los 21 campos del editor. Cómo se leen depende de la fecha del registro, ver fiabilidadMetrica
-const CamposTapados = ({ registro }) => {
+// Las 21 casillas del editor, marcadas o no. Cómo se leen depende de la fecha del registro, ver fiabilidadMetrica.
+// Hasta el 24/11/2026 se llamaba «Campos tapados», pero desde CEN-6 y CEN-7 la web tapa también la MRZ, el CLI y la
+// ventana del soporte cuando repiten un dato marcado, aunque su casilla no lo esté, y con Viajes salían «Visible»
+const CamposMarcados = ({ registro }) => {
   const fiabilidad = fiabilidadMetrica(registro, 'hiddenFields');
   const sinDatos = fiabilidad === 'sin-datos';
 
   return (
     <section className="mb-8">
-      <TituloSeccion icono={<EyeOff size={16} />}>Campos tapados</TituloSeccion>
+      <TituloSeccion icono={<EyeOff size={16} />}>Campos marcados</TituloSeccion>
+      <p className="text-xs text-slate-400 mb-4">
+        Las casillas que se marcaron para tapar. Desde el 24/11/2026 la web tapa además la MRZ, el CLI y la ventana del
+        soporte cuando repiten un dato marcado, aunque su casilla no esté marcada.
+      </p>
 
       {sinDatos && (
         <Nota>
-          Registro anterior al 26/01/2026. Hasta entonces el backend no guardaba qué campos se tapaban, así que lo que
+          Registro anterior al 26/01/2026. Hasta entonces el backend no guardaba qué campos se marcaban, así que lo que
           devuelve son los valores por defecto y no se enseñan.
         </Nota>
       )}
       {fiabilidad === 'dudosa' && (
         <Nota>
           Registro del 26/01/2026, el día en que se empezó a guardar este dato. Puede traer los valores por defecto
-          (todo tapado) en vez de lo que se eligió.
+          (todo marcado) en vez de lo que se eligió.
         </Nota>
       )}
 
@@ -371,14 +377,14 @@ const DniDetailPage = () => {
 
         {perfilInvertido(dni) === 'invertido' && (
           <Nota>
-            Hasta el 13/11/2026 los perfiles predefinidos tapaban lo contrario de lo que prometían. Los campos tapados de
+            Hasta el 13/11/2026 los perfiles predefinidos tapaban lo contrario de lo que prometían. Los campos marcados de
             abajo son lo que se tapó de verdad, no lo que dice el perfil.
           </Nota>
         )}
         {perfilInvertido(dni) === 'dudoso' && (
           <Nota>
             Este registro es del 13/11/2026, el día en que se corrigieron los perfiles predefinidos, que hasta entonces
-            tapaban lo contrario de lo que prometían. Puede ser de antes o de después de la corrección. Los campos tapados
+            tapaban lo contrario de lo que prometían. Puede ser de antes o de después de la corrección. Los campos marcados
             de abajo son lo que se tapó de verdad.
           </Nota>
         )}
@@ -414,7 +420,7 @@ const DniDetailPage = () => {
           </div>
         </section>
 
-        <CamposTapados registro={dni} />
+        <CamposMarcados registro={dni} />
 
         <DeteccionRegistro deteccion={dni.deteccion} />
 
