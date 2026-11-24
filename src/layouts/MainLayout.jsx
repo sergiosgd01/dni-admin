@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShieldCheck, LayoutDashboard, BarChart3, Menu, X } from 'lucide-react';
+import { LogOut, ShieldCheck, LayoutDashboard, BarChart3, PieChart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SECCIONES = [
     { ruta: '/', nombre: 'Registros', icono: <LayoutDashboard size={20} />, exacta: true },
+    { ruta: '/resumen', nombre: 'Resumen', icono: <PieChart size={20} /> },
     { ruta: '/fallos', nombre: 'Fallos por campo', icono: <BarChart3 size={20} /> },
 ];
 

@@ -92,6 +92,12 @@ export const dniService = {
     return data?.data ?? null;
   },
 
+  // Resumen del uso de la web (BACK-4), con filtros opcionales de fechas (AAAA-MM-DD)
+  summary: async ({ desde, hasta }, signal) => {
+    const { data } = await api.get('/dni/stats/resumen', { params: soloConValor({ desde, hasta }), signal });
+    return data?.data ?? null;
+  },
+
   // Health Check
   health: () => api.get('/health'),
 };

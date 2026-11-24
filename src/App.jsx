@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import DniDetailPage from './pages/DniDetailPage';
 import FallosPorCampoPage from './pages/FallosPorCampoPage';
+import ResumenPage from './pages/ResumenPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/dni/:id" element={<DniDetailPage />} />
             <Route path="/fallos" element={<FallosPorCampoPage />} />
+            <Route path="/resumen" element={<ResumenPage />} />
           </Route>
         </Routes>
       </AuthProvider>
