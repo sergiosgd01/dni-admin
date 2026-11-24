@@ -161,6 +161,8 @@ const DeteccionCara = ({ cara, idCara, nombre }) => {
         <p className="text-xs text-slate-400 mb-3">El detector no encontró el documento en esta cara, así que se censuró a mano.</p>
       )}
 
+      <PlantillaCara cara={cara} idCara={idCara} />
+
       <ul className="divide-y divide-white/5">
         {esperadas.map((clase) => (
           <li key={clase} className="flex items-center justify-between gap-3 py-1.5 text-xs">
@@ -189,6 +191,49 @@ const DeteccionCara = ({ cara, idCara, nombre }) => {
         </div>
       )}
     </div>
+  );
+};
+
+// Nombres de las clases de una lista, o «Sin dato» si el registro no la trae bien
+const listaDeClases = (lista) => {
+  if (!Array.isArray(lista)) return 'Sin dato';
+  return lista.length > 0 ? lista.map(nombreClase).join(', ') : 'Ninguna';
+};
+
+// Plantilla del DNI (MET-4). Los registros de antes del 23/11/2026 no la traen. Lo que se dice de cada dato depende de
+// si la cara se tapó sola o pasó por la censura manual
+const PlantillaCara = ({ cara, idCara }) => {
+  if (typeof cara.plantilla !== 'boolean') return null;
+  const aMano = cara.automatica !== true;
+  let plantilla = aMano ? 'No se usó. Se tapó a mano la cara entera o lo que faltaba' : 'No se usó. Se tapó con las cajas del modelo';
+  if (cara.plantilla) {
+    plantilla = `Colocada${Number.isFinite(cara.errorPlantilla) ? `, error del ${formatearPorcentaje(cara.errorPlantilla)} del alto` : ''}`;
+  }
+  let domicilio = 'Calle separada del municipio y la provincia';
+  if (cara.domicilioPartido === false) domicilio = aMano ? 'No se pudo separar la calle' : 'No se pudo separar la calle, se tapó el domicilio entero';
+  return (
+    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-4">
+      <div className="bg-dark-900/60 rounded-lg p-2">
+        <dt className="text-slate-500">Plantilla del DNI</dt>
+        <dd className={cara.plantilla ? 'text-green-300' : 'text-slate-300'}>{plantilla}</dd>
+      </div>
+      {idCara === 'reverso' && typeof cara.domicilioPartido === 'boolean' && (
+        <div className="bg-dark-900/60 rounded-lg p-2">
+          <dt className="text-slate-500">Domicilio</dt>
+          <dd className={cara.domicilioPartido ? 'text-green-300' : 'text-amber-300'}>{domicilio}</dd>
+        </div>
+      )}
+      <div className="bg-dark-900/60 rounded-lg p-2">
+        <dt className="text-slate-500">Cajas fuera de sitio</dt>
+        <dd className={cara.plantilla && cara.fueraDeSitio?.length ? 'text-amber-300' : 'text-slate-300'}>
+          {cara.plantilla ? listaDeClases(cara.fueraDeSitio) : 'No se comprueba sin plantilla'}
+        </dd>
+      </div>
+      <div className="bg-dark-900/60 rounded-lg p-2">
+        <dt className="text-slate-500">Tapado con la plantilla</dt>
+        <dd className="text-slate-300">{cara.plantilla ? listaDeClases(cara.rellenadas) : 'Nada'}</dd>
+      </div>
+    </dl>
   );
 };
 

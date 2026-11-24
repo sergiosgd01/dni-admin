@@ -9,7 +9,8 @@ import { formatearConfianza, formatearEntero, formatearFecha, formatearPorcentaj
 // aún llega al 11 %), así que no se colorea ni se destaca, y se marca como «pocos intentos»
 const MIN_INTENTOS_FIABLE = 30;
 
-// Detecciones que pide el editor de la web para censurar sola cada cara
+// Detecciones que pide el editor de la web para fiarse de las cajas de cada cara. Las mismas que MIN_DETECCIONES del
+// backend (config/clasesDeteccion.js), que solo cuenta los fallos por clase en las caras que llegan a ellas
 const MIN_DETECCIONES = { anverso: 15, reverso: 6 };
 
 const FECHA_VALIDA = /^\d{4}-\d{2}-\d{2}$/;
@@ -89,7 +90,12 @@ const NombreClase = ({ clase }) => (
   </>
 );
 
-const TablaFallos = ({ titulo, filas, orden }) => (
+// Sin ninguna cara con plantilla los recuentos de la plantilla son cero por fuerza, y se enseña una raya
+const SinPlantilla = () => (
+  <span className="text-slate-600" title="Todavía no hay caras con plantilla con estos filtros">—</span>
+);
+
+const TablaFallos = ({ titulo, filas, orden, conPlantilla }) => (
   <div className="overflow-x-auto">
     <table className="w-full text-sm">
       <caption className="text-left text-xs text-slate-400 pb-2">
@@ -103,6 +109,13 @@ const TablaFallos = ({ titulo, filas, orden }) => (
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Fallos</th>
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Intentos</th>
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Confianza media</th>
+          <th
+            scope="col"
+            className="px-3 py-2 whitespace-nowrap text-right font-medium"
+            title="De las caras con plantilla del DNI, en cuántas la web tapó esta clase en su sitio con ella, porque el modelo no la encontró o su caja estaba fuera de sitio. Debajo, en cuántas el modelo puso la caja de esta clase fuera de su sitio"
+          >
+            Plantilla
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -120,6 +133,20 @@ const TablaFallos = ({ titulo, filas, orden }) => (
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearEntero(fila.fallos)}</td>
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearEntero(fila.intentos)}</td>
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearConfianza(fila.confianzaMedia)}</td>
+            <td className="px-3 py-2 text-right tabular-nums text-slate-300 whitespace-nowrap">
+              {conPlantilla > 0 ? (
+                <>
+                  <span title="Caras tapadas en su sitio con la plantilla">{formatearEntero(fila.rellenada)}</span>
+                  {fila.fueraDeSitio > 0 && (
+                    <span className="block text-xs text-amber-300" title="Caras con la caja de esta clase fuera de sitio">
+                      {formatearEntero(fila.fueraDeSitio)} fuera de sitio
+                    </span>
+                  )}
+                </>
+              ) : (
+                <SinPlantilla />
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -127,7 +154,7 @@ const TablaFallos = ({ titulo, filas, orden }) => (
   </div>
 );
 
-const TablaNoEsperadas = ({ filas }) => (
+const TablaNoEsperadas = ({ filas, conPlantilla }) => (
   <div className="overflow-x-auto">
     <table className="w-full text-sm">
       <caption className="text-left text-xs text-slate-400 pb-2">
@@ -141,6 +168,13 @@ const TablaNoEsperadas = ({ filas }) => (
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Detectada</th>
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Intentos</th>
           <th scope="col" className="px-3 py-2 whitespace-nowrap text-right font-medium">Confianza media</th>
+          <th
+            scope="col"
+            className="px-3 py-2 whitespace-nowrap text-right font-medium"
+            title="De las caras con plantilla del DNI, en cuántas el modelo puso la caja de esta clase fuera de su sitio. Los elementos de seguridad son los que colocan la plantilla"
+          >
+            Fuera de sitio
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -156,6 +190,9 @@ const TablaNoEsperadas = ({ filas }) => (
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearEntero(fila.veces)}</td>
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearEntero(fila.intentos)}</td>
             <td className="px-3 py-2 text-right tabular-nums text-slate-300">{formatearConfianza(fila.confianzaMedia)}</td>
+            <td className="px-3 py-2 text-right tabular-nums text-slate-300">
+              {conPlantilla > 0 ? formatearEntero(fila.fueraDeSitio) : <SinPlantilla />}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -163,6 +200,7 @@ const TablaNoEsperadas = ({ filas }) => (
   </div>
 );
 
+// Sin valor (null) enseña una raya, para no confundir «sin datos» con un cero
 const Contador = ({ titulo, valor, total, ayuda }) => (
   <div className="bg-white/5 rounded-xl p-3" title={ayuda}>
     <dt className="text-xs text-slate-400">{titulo}</dt>
@@ -192,7 +230,7 @@ const SeccionCara = ({ idCara, nombre, cara, orden, verNoEsperadas }) => {
     <section aria-labelledby={`cara-${idCara}`} className="glass-card rounded-2xl p-4 md:p-6 space-y-5">
       <h2 id={`cara-${idCara}`} className="text-xl font-bold text-white">{nombre}</h2>
 
-      <dl className="grid grid-cols-3 gap-2 sm:gap-3">
+      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         <Contador
           titulo="Caras procesadas"
           valor={cara.intentos}
@@ -208,12 +246,30 @@ const SeccionCara = ({ idCara, nombre, cara, orden, verNoEsperadas }) => {
           titulo="Censura manual"
           valor={cara.manual}
           total={cara.intentos}
-          ayuda={`Incluye las caras sin documento detectado y las que tuvieron menos de ${MIN_DETECCIONES[idCara]} detecciones`}
+          ayuda={`Caras que no se taparon solas: sin documento detectado, con menos de ${MIN_DETECCIONES[idCara]} detecciones o con algún campo marcado que hubo que tapar a mano`}
         />
+        {Number.isFinite(cara.conDatosPlantilla) && (
+          <Contador
+            titulo="Con plantilla"
+            valor={cara.conDatosPlantilla > 0 ? cara.conPlantilla : null}
+            total={cara.conDatosPlantilla}
+            ayuda={cara.conDatosPlantilla > 0
+              ? `De las ${formatearEntero(cara.conDatosPlantilla)} caras que traen este dato (la web lo manda desde el 23/11/2026), en cuántas colocó la plantilla del DNI con las cajas que encontró y la usó para decidir qué tapar. Con ella tapa en su sitio parte de lo que el modelo no encuentra. En las caras que van enteras a mano no se usa`
+              : 'Todavía no hay caras con este dato con estos filtros. La web lo manda desde el 23/11/2026'}
+          />
+        )}
+        {idCara === 'reverso' && cara.domicilioPartido && (
+          <Contador
+            titulo="Domicilio partido"
+            valor={cara.domicilioPartido.si + cara.domicilioPartido.no > 0 ? cara.domicilioPartido.si : null}
+            total={cara.domicilioPartido.si + cara.domicilioPartido.no}
+            ayuda="De las veces que se pidió tapar solo la calle y dejar a la vista municipio y provincia (Viajes), sin que la cara fuera entera a mano, en cuántas se pudieron separar las líneas. Solo se separan con las cuatro líneas del domicilio a la vista. Si no, se tapa el domicilio entero"
+          />
+        )}
       </dl>
 
       {cara.intentos > 0 ? (
-        <TablaFallos titulo="Clases esperadas" filas={esperadas} orden={orden} />
+        <TablaFallos titulo="Clases esperadas" filas={esperadas} orden={orden} conPlantilla={cara.conPlantilla} />
       ) : (
         <p className="text-sm text-slate-400">Todavía no hay datos de esta cara con estos filtros.</p>
       )}
@@ -225,7 +281,7 @@ const SeccionCara = ({ idCara, nombre, cara, orden, verNoEsperadas }) => {
             elementos de seguridad y no campos. Una clase de la otra cara detectada aquí puede indicar caras cambiadas o
             una detección falsa.
           </p>
-          {detectadasAlgunaVez.length > 0 && <TablaNoEsperadas filas={detectadasAlgunaVez} />}
+          {detectadasAlgunaVez.length > 0 && <TablaNoEsperadas filas={detectadasAlgunaVez} conPlantilla={cara.conPlantilla} />}
           {nuncaDetectadas.length > 0 && (
             <p className="text-xs text-slate-400">
               No se detectaron nunca: {nuncaDetectadas.map((fila) => nombreClase(fila.clase)).join(', ')}.
@@ -504,11 +560,16 @@ const FallosPorCampoPage = () => {
             <Info size={14} className="shrink-0 mt-0.5" />
             <div className="space-y-2">
               <p>
-                Cada intento es una cara que se censuró sola, es decir, con el documento detectado y bastantes campos.
-                Hay fallo si el detector no encontró el campo, y entonces ese campo se queda a la vista si estaba marcado.
-                Las caras sin documento detectado y las que fueron a censura manual (por ejemplo giradas o con poca luz)
-                no cuentan aquí, porque en ellas tapa la persona a mano. Se cuentan arriba, en cara no detectada y censura
-                manual. La confianza media es la del detector cuando sí encontró el campo, entre 0 y 1.
+                Cada intento es una cara reconocida, con el documento detectado y al menos {MIN_DETECCIONES.anverso}{' '}
+                detecciones en el anverso o {MIN_DETECCIONES.reverso} en el reverso. Hay fallo si el detector no encontró
+                el campo. Mide solo al modelo y vale igual para los registros de antes y de después de la plantilla del DNI
+                (23/11/2026). Hoy, si falta un campo marcado, la web intenta taparlo en su sitio con la plantilla, y la
+                columna Plantilla dice cuántas veces lo hizo. Si no puede, lo pide en la censura manual, salvo las copias
+                de otros datos y el CLI, que el modelo casi nunca encuentra. Esos se quedan a la vista si la cara se tapa
+                sola. Las caras sin documento
+                detectado o con menos detecciones no cuentan aquí, porque se tapan enteras a mano. Se cuentan arriba, en
+                cara no detectada y censura manual. La confianza media es la del detector cuando sí encontró el campo,
+                entre 0 y 1.
               </p>
               <p>
                 El intervalo del 95 % (de Wilson) es el margen en el que está la probabilidad real. Con pocos intentos es
